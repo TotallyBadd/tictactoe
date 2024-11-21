@@ -1,1 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Tic_tac_toe.svg/800px-Tic_tac_toe.svg.png" type="image/png">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            overflow: hidden;
+        }
 
+        #main-menu, #game-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        #main-menu.active, #game-screen.active {
+            display: flex;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .menu-btn {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 1.5em;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+            width: 300px;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            height: 100px;
+            font-size: 2.5em;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .cell span {
+            position: absolute;
+            transform: scale(0);
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .cell.x span {
+            color: #ff6f61;
+        }
+
+        .cell.o span {
+            color: #61a4ff;
+        }
+
+        @keyframes fadeIn {
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .status {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #fff;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Menu -->
+    <div id="main-menu" class="active">
+        <h1>Tic Tac Toe</h1>
+        <button class="menu-btn" onclick="startGame('ai')">Play Against AI</button>
+        <button class="menu-btn" onclick="startGame('local')">Play With a Friend</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen">
+        <div class="status" id="status">It's X's turn!</div>
+        <div id="game-board"></div>
+        <button class="back-btn" onclick="goToMenu()">Back to Menu</button>
+    </div>
+
+    <script>
+        let currentPlayer = 'X';
+        let board = Array(9).fill(null);
+        let isGameActive = true;
+        let gameMode = null;
+
+        const mainMenu = document.getElementById('main-menu');
+        const gameScreen = document.getElementById('game-screen');
+        const statusDisplay = document.getElementById('status');
+        const gameBoard = document.getElementById('game-board');
+
+        function startGame(mode) {
+            gameMode = mode;
+            mainMenu.classList.remove('active');
+            gameScreen.classList.add('active');
+            resetGame();
+        }
+
+        function resetGame() {
+            board = Array(9).fill(null);
+            currentPlayer = 'X';
+            isGameActive = true;
+            statusDisplay.textContent = "It's X's turn!";
+            renderBoard();
+        }
+
+        function renderBoard() {
+            gameBoard.innerHTML = '';
+            board.forEach((cell, index) => {
+                const cellDiv = document.createElement('div');
+                cellDiv.classList.add('cell');
+                if (cell) {
+                    cellDiv.classList.add(cell.toLowerCase());
+                    cellDiv.innerHTML = `<span>${cell}</span>`;
+                }
+                cellDiv.addEventListener('click', () => handleCellClick(index));
+                gameBoard.appendChild(cellDiv);
+            });
+        }
+
+        function handleCellClick(index) {
+            if (!isGameActive || board[index]) return;
+
+            board[index] = currentPlayer;
+            if (gameMode === 'ai' && currentPlayer === 'X') makeAIMove();
+            checkGameStatus();
+            switchPlayer();
+            renderBoard();
+        }
+
+        function switchPlayer() {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            statusDisplay.textContent = `It's ${currentPlayer}'s turn!`;
+        }
+
+        function checkGameStatus() {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+
+            winPatterns.some(pattern => {
+                const [a, b, c] = pattern;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    isGameActive = false;
+                    statusDisplay.textContent = `${board[a]} wins!`;
+                    return true;
+                }
+                return false;
+            });
+
+            if (isGameActive && board.every(cell => cell)) {
+                isGameActive = false;
+                statusDisplay.textContent = "It's a draw!";
+            }
+        }
+
+        function makeAIMove() {
+            const emptyCells = board.map((cell, index) => cell === null ? index : null).filter(i => i !== null);
+            if (emptyCells.length === 0) return;
+
+            const randomMove = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            board[randomMove] = 'O';
+            checkGameStatus();
+        }
+
+        function goToMenu() {
+            gameScreen.classList.remove('active');
+            mainMenu.classList.add('active');
+        }
+
+        renderBoard();
+    </script>
+</body>
+</html>
