@@ -19,7 +19,7 @@
             overflow: hidden;
         }
 
-        #main-menu, #game-screen {
+        #main-menu, #game-screen, #win-menu {
             display: none;
             flex-direction: column;
             align-items: center;
@@ -28,7 +28,7 @@
             height: 100%;
         }
 
-        #main-menu.active, #game-screen.active {
+        #main-menu.active, #game-screen.active, #win-menu.active {
             display: flex;
         }
 
@@ -109,7 +109,7 @@
         }
 
         .action-buttons {
-            margin-top: 20px;
+            margin-top: 40px;
             display: flex;
             gap: 10px;
         }
@@ -129,24 +129,33 @@
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.05);
         }
+
+        #win-menu h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <!-- Main Menu -->
     <div id="main-menu" class="active">
         <h1>Tic Tac Toe</h1>
         <button class="menu-btn" onclick="startGame('ai')">Play Against AI</button>
         <button class="menu-btn" onclick="startGame('local')">Play With a Friend</button>
     </div>
 
-    <!-- Game Screen -->
     <div id="game-screen">
         <div class="status" id="status">It's X's turn!</div>
         <div id="game-board"></div>
         <div class="action-buttons">
-            <button class="action-btn" onclick="resetGame()">Replay</button>
-            <button class="action-btn" onclick="goToMenu()">Home</button>
+            <button class="action-btn" onclick="resetGame()">Restart</button>
+            <button class="action-btn" onclick="goToMenu()">Back to Menu</button>
         </div>
+    </div>
+
+    <div id="win-menu">
+        <h2 id="winner-message"></h2>
+        <button class="menu-btn" onclick="resetGame()">Play Again</button>
+        <button class="menu-btn" onclick="goToMenu()">Back to Menu</button>
     </div>
 
     <script>
@@ -157,7 +166,9 @@
 
         const mainMenu = document.getElementById('main-menu');
         const gameScreen = document.getElementById('game-screen');
+        const winMenu = document.getElementById('win-menu');
         const statusDisplay = document.getElementById('status');
+        const winnerMessage = document.getElementById('winner-message');
         const gameBoard = document.getElementById('game-board');
 
         function startGame(mode) {
@@ -171,6 +182,8 @@
             board = Array(9).fill(null);
             currentPlayer = 'X';
             isGameActive = true;
+            winMenu.classList.remove('active');
+            gameScreen.classList.add('active');
             statusDisplay.textContent = "It's X's turn!";
             renderBoard();
         }
@@ -218,7 +231,7 @@
                 const [a, b, c] = pattern;
                 if (board[a] && board[a] === board[b] && board[a] === board[c]) {
                     isGameActive = false;
-                    statusDisplay.textContent = `${board[a]} wins!`;
+                    showWinMenu(`${board[a]} wins!`);
                     return true;
                 }
                 return false;
@@ -226,22 +239,32 @@
 
             if (isGameActive && board.every(cell => cell)) {
                 isGameActive = false;
-                statusDisplay.textContent = "It's a draw!";
+                showWinMenu("It's a draw!");
             }
         }
 
-        function makeAIMove() {
-            const emptyCells = board.map((cell, index) => cell === null ? index : null).filter(i => i !== null);
-            if (emptyCells.length === 0) return;
+        function showWinMenu(message) {
+            gameScreen.classList.remove('active');
+            winMenu.classList.add('active');
+            winnerMessage.textContent = message;
+        }
 
-            const randomMove = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            board[randomMove] = 'O';
-            checkGameStatus();
-            renderBoard();
-            if (isGameActive) switchPlayer();
+        function makeAIMove() {
+            const emptyCells = board
+                .map((cell, index) => (cell === null ? index : null))
+                .filter(index => index !== null);
+
+            if (emptyCells.length > 0) {
+                const bestMove = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                board[bestMove] = 'O';
+                checkGameStatus();
+                renderBoard();
+                if (isGameActive) switchPlayer();
+            }
         }
 
         function goToMenu() {
+            winMenu.classList.remove('active');
             gameScreen.classList.remove('active');
             mainMenu.classList.add('active');
         }
