@@ -124,6 +124,7 @@
             border-radius: 8px;
             color: #fff;
             cursor: pointer;
+            gap: 20px
             transition: all 0.3s ease;
         }
 
@@ -143,18 +144,6 @@
             font-size: 0.9em;
             color: #666;
             opacity: 0.25;
-        }
-
-        header {
-            bottom: 10px;
-            display: flex;
-            position: absolute;
-            text-align: center;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9em;
-            color: white;
-            opacity: 1;
         }
     </style>
 </head>
@@ -179,9 +168,8 @@
         <div class="status" id="status">IT'S X'S TURN</div>
         <div id="game-board"></div>
         <div class="action-buttons">
-            <button class="action-btn" onclick="resetGame()">(/!\) RESTART (/!\)</button>
-            <button class="action-btn" onclick="goToMenu()">(/!\) BACK TO MENU (/!\)</button>
-            <header>(/!\)* THIS WILL END/RESET YOUR ONGOING GAME!</header>
+            <button class="action-btn" onclick="resetGame()">RESTART</button>
+            <button class="action-btn" onclick="goToMenu()">BACK TO MENU</button>
         </div>
     </div>
 
