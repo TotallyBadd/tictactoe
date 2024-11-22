@@ -35,17 +35,6 @@
         h1 {
             font-size: 2.5em;
             margin-bottom: 20px;
-            text-decoration: underline;
-        }
-        
-        p {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            justify-content: center;
-            align-items: center;
-            display: flex;
-            font-family: 'Times New Roman', sans-serif;
-            text-align: center;
         }
 
         .menu-btn {
@@ -149,10 +138,9 @@
 </head>
 <body>
     <div id="main-menu" class="active">
-        <h1>X| Tic Tac Toe |O</h1>
-        <p>Welcome to TicTacToe by TotallyBad,<br> Here you can enjoy TicTacToe local with your friends or against an AI which gets fluent updates to improve the level of skill and difficulty!<br> Enjoy playing!</p>
-        <button class="menu-btn" onclick="startGame('ai')">Play against AI</button>
-        <button class="menu-btn" onclick="startGame('local')">Play with a Friend</button>
+        <h1>Tic Tac Toe</h1>
+        <button class="menu-btn" onclick="startGame('ai')">Play Against AI</button>
+        <button class="menu-btn" onclick="startGame('local')">Play With a Friend</button>
     </div>
 
     <div id="game-screen">
@@ -262,16 +250,83 @@
         }
 
         function makeAIMove() {
-            const emptyCells = board
-                .map((cell, index) => (cell === null ? index : null))
-                .filter(index => index !== null);
-
-            if (emptyCells.length > 0) {
-                const bestMove = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            const bestMove = findBestMove(board);
+            if (bestMove !== null) {
                 board[bestMove] = 'O';
                 checkGameStatus();
                 renderBoard();
                 if (isGameActive) switchPlayer();
+            }
+        }
+
+        function evaluate(board) {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+
+            for (const pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    return board[a] === 'O' ? 10 : -10;
+                }
+            }
+
+            return 0;
+        }
+
+        function findBestMove(board) {
+            let bestVal = -Infinity;
+            let bestMove = null;
+
+            for (let i = 0; i < board.length; i++) {
+                if (!board[i]) {
+                    board[i] = 'O';
+                    const moveVal = minimax(board, 0, false);
+                    board[i] = null;
+
+                    if (moveVal > bestVal) {
+                        bestVal = moveVal;
+                        bestMove = i;
+                    }
+                }
+            }
+
+            return bestMove;
+        }
+
+        function minimax(board, depth, isMaximizing) {
+            const score = evaluate(board);
+
+            if (score === 10) return score - depth;
+            if (score === -10) return score + depth;
+            if (board.every(cell => cell)) return 0;
+
+            if (isMaximizing) {
+                let best = -Infinity;
+
+                for (let i = 0; i < board.length; i++) {
+                    if (!board[i]) {
+                        board[i] = 'O';
+                        best = Math.max(best, minimax(board, depth + 1, false));
+                        board[i] = null;
+                    }
+                }
+
+                return best;
+            } else {
+                let best = Infinity;
+
+                for (let i = 0; i < board.length; i++) {
+                    if (!board[i]) {
+                        board[i] = 'X';
+                        best = Math.min(best, minimax(board, depth + 1, true));
+                        board[i] = null;
+                    }
+                }
+
+                return best;
             }
         }
 
