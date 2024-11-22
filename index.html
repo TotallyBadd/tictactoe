@@ -129,14 +129,12 @@
     </style>
 </head>
 <body>
-    <!-- Main Menu -->
     <div id="main-menu" class="active">
         <h1>Tic Tac Toe</h1>
         <button class="menu-btn" onclick="showDifficultyMenu()">Play Against AI</button>
         <button class="menu-btn" onclick="startGame('local')">Play With a Friend</button>
     </div>
 
-    <!-- Difficulty Menu -->
     <div id="difficulty-menu">
         <h1>Select Difficulty</h1>
         <button class="menu-btn" onclick="startGame('ai', 'easy')">Easy</button>
@@ -145,7 +143,6 @@
         <button class="menu-btn" onclick="startGame('ai', 'impossible')">Impossible</button>
     </div>
 
-    <!-- Game Screen -->
     <div id="game-screen">
         <div class="status" id="status">It's X's turn!</div>
         <div id="game-board"></div>
@@ -155,7 +152,6 @@
         </div>
     </div>
 
-    <!-- Win Menu -->
     <div id="win-menu">
         <h2 id="winner-message"></h2>
         <button class="menu-btn" onclick="resetGame()">Play Again</button>
