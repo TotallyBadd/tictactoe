@@ -19,7 +19,7 @@
             overflow: hidden;
         }
 
-        #main-menu, #game-screen, #win-menu {
+        #main-menu, #game-screen, #win-menu, #difficulty-menu {
             display: none;
             flex-direction: column;
             align-items: center;
@@ -28,7 +28,7 @@
             height: 100%;
         }
 
-        #main-menu.active, #game-screen.active, #win-menu.active {
+        #main-menu.active, #game-screen.active, #win-menu.active, #difficulty-menu.active {
             display: flex;
         }
 
@@ -75,18 +75,10 @@
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
         }
 
         .cell:hover {
             background: rgba(255, 255, 255, 0.2);
-        }
-
-        .cell span {
-            position: absolute;
-            transform: scale(0);
-            animation: fadeIn 0.3s ease forwards;
         }
 
         .cell.x span {
@@ -137,12 +129,23 @@
     </style>
 </head>
 <body>
+    <!-- Main Menu -->
     <div id="main-menu" class="active">
         <h1>Tic Tac Toe</h1>
-        <button class="menu-btn" onclick="startGame('ai')">Play Against AI</button>
+        <button class="menu-btn" onclick="showDifficultyMenu()">Play Against AI</button>
         <button class="menu-btn" onclick="startGame('local')">Play With a Friend</button>
     </div>
 
+    <!-- Difficulty Menu -->
+    <div id="difficulty-menu">
+        <h1>Select Difficulty</h1>
+        <button class="menu-btn" onclick="startGame('ai', 'easy')">Easy</button>
+        <button class="menu-btn" onclick="startGame('ai', 'medium')">Medium</button>
+        <button class="menu-btn" onclick="startGame('ai', 'hard')">Hard</button>
+        <button class="menu-btn" onclick="startGame('ai', 'impossible')">Impossible</button>
+    </div>
+
+    <!-- Game Screen -->
     <div id="game-screen">
         <div class="status" id="status">It's X's turn!</div>
         <div id="game-board"></div>
@@ -152,6 +155,7 @@
         </div>
     </div>
 
+    <!-- Win Menu -->
     <div id="win-menu">
         <h2 id="winner-message"></h2>
         <button class="menu-btn" onclick="resetGame()">Play Again</button>
@@ -163,17 +167,26 @@
         let board = Array(9).fill(null);
         let isGameActive = true;
         let gameMode = null;
+        let aiDifficulty = null;
 
         const mainMenu = document.getElementById('main-menu');
+        const difficultyMenu = document.getElementById('difficulty-menu');
         const gameScreen = document.getElementById('game-screen');
         const winMenu = document.getElementById('win-menu');
         const statusDisplay = document.getElementById('status');
         const winnerMessage = document.getElementById('winner-message');
         const gameBoard = document.getElementById('game-board');
 
-        function startGame(mode) {
-            gameMode = mode;
+        function showDifficultyMenu() {
             mainMenu.classList.remove('active');
+            difficultyMenu.classList.add('active');
+        }
+
+        function startGame(mode, difficulty = null) {
+            gameMode = mode;
+            aiDifficulty = difficulty;
+            mainMenu.classList.remove('active');
+            difficultyMenu.classList.remove('active');
             gameScreen.classList.add('active');
             resetGame();
         }
@@ -244,19 +257,40 @@
         }
 
         function showWinMenu(message) {
+            winnerMessage.textContent = message;
             gameScreen.classList.remove('active');
             winMenu.classList.add('active');
-            winnerMessage.textContent = message;
         }
 
         function makeAIMove() {
-            const bestMove = findBestMove(board);
-            if (bestMove !== null) {
-                board[bestMove] = 'O';
-                checkGameStatus();
-                renderBoard();
-                if (isGameActive) switchPlayer();
+            let move;
+            if (aiDifficulty === 'easy') {
+                do {
+                    move = Math.floor(Math.random() * 9);
+                } while (board[move]);
+            } else if (aiDifficulty === 'medium') {
+                move = findMediumMove(board);
+            } else if (aiDifficulty === 'hard') {
+                move = findHardMove(board);
+            } else if (aiDifficulty === 'impossible') {
+                move = findBestMove(board);
             }
+            board[move] = 'O';
+            checkGameStatus();
+            if (isGameActive) switchPlayer();
+            renderBoard();
+        }
+
+        function findMediumMove(board) {
+            const randomChance = Math.random() < 0.5;
+            if (randomChance) return findBestMove(board);
+            return board.findIndex(cell => !cell);
+        }
+
+        function findHardMove(board) {
+            const randomChance = Math.random() < 0.8;
+            if (randomChance) return findBestMove(board);
+            return board.findIndex(cell => !cell);
         }
 
         function evaluate(board) {
@@ -266,13 +300,11 @@
                 [0, 4, 8], [2, 4, 6]
             ];
 
-            for (const pattern of winPatterns) {
-                const [a, b, c] = pattern;
+            for (const [a, b, c] of winPatterns) {
                 if (board[a] && board[a] === board[b] && board[a] === board[c]) {
                     return board[a] === 'O' ? 10 : -10;
                 }
             }
-
             return 0;
         }
 
@@ -285,14 +317,12 @@
                     board[i] = 'O';
                     const moveVal = minimax(board, 0, false);
                     board[i] = null;
-
                     if (moveVal > bestVal) {
                         bestVal = moveVal;
                         bestMove = i;
                     }
                 }
             }
-
             return bestMove;
         }
 
@@ -305,7 +335,6 @@
 
             if (isMaximizing) {
                 let best = -Infinity;
-
                 for (let i = 0; i < board.length; i++) {
                     if (!board[i]) {
                         board[i] = 'O';
@@ -313,11 +342,9 @@
                         board[i] = null;
                     }
                 }
-
                 return best;
             } else {
                 let best = Infinity;
-
                 for (let i = 0; i < board.length; i++) {
                     if (!board[i]) {
                         board[i] = 'X';
@@ -325,15 +352,15 @@
                         board[i] = null;
                     }
                 }
-
                 return best;
             }
         }
 
         function goToMenu() {
-            winMenu.classList.remove('active');
-            gameScreen.classList.remove('active');
             mainMenu.classList.add('active');
+            difficultyMenu.classList.remove('active');
+            gameScreen.classList.remove('active');
+            winMenu.classList.remove('active');
         }
     </script>
 </body>
